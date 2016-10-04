@@ -46,7 +46,30 @@ public class EquationLexer implements Supplier<Token> {
                 case '+': return PLUS;
                 case '-': return MINUS;
                 case '*': return TIMES;
-                case '/': return DIVIDE;
+                case '/':
+                    if (input.peek() == '/') {
+                        //Eat a line comment
+                        input.next();
+                        while (input.hasNext() && input.peek() != '\n') input.next();
+                        break;
+                    } else if (input.peek() == '*') {
+                        //Eat a multiline comment
+                        input.next();
+                        while (input.hasNext()) {
+                            if (input.peek() != '*')
+                                input.next();
+                            else if (input.hasNext()) {
+                                input.next();
+                                if (input.peek() == '/') {
+                                    input.next();
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    } else {
+                        return DIVIDE;
+                    }
                 case '(': return L_PAREN;
                 case ')': return R_PAREN;
                 case ',': return COMMA;

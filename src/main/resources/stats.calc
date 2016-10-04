@@ -1,0 +1,4 @@
+//Common discrete density functions
+binomialDensity(x, n, p) = C($n, $x) * pow($p, $x) * pow(1-$p, $n - $x);
+negBinomialDensity(x, r, p) = C($x-1, $r-1) * pow(1 - $p, $x - $r) * pow($p, $r);
+hyperGeoDensity(x, N, K, n) = (C($K, $x)*C($N-$K, $n-$x)) / (C($N, $n));
