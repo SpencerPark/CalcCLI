@@ -2,28 +2,40 @@ package io.github.spencerpark.calccli.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 
-public class InputStreamCharStream implements CharStream {
-    private final InputStream in;
-    private char next;
+public class ReaderCharStream implements CharStream {
+    private final Reader in;
+    private char current;
     private boolean closed;
 
-    public InputStreamCharStream(InputStream in) {
-        this.in = in;
+    public ReaderCharStream(InputStream in) {
+        this.in = new InputStreamReader(in, Charset.defaultCharset());
         this.closed = false;
+        next();
     }
 
     @Override
     public char peek() {
         if (this.closed) return '\0';
-        return next;
+        return current;
     }
 
     @Override
     public char next() {
         if (this.closed) return '\0';
         try {
-            return this.next = (char) in.read();
+            int next = in.read();
+            if (next == -1) {
+                this.closed = true;
+                return '\0';
+            } else {
+                char consumed = this.current;
+                this.current = (char) next;
+                return consumed;
+            }
         } catch (IOException e) {
             throw new ParseException(String.format("Error reading from stream. Message: %s\n", e.getMessage()));
         }
@@ -31,12 +43,7 @@ public class InputStreamCharStream implements CharStream {
 
     @Override
     public boolean hasNext() {
-        if (this.closed) return false;
-        try {
-            return in.available() > 0;
-        } catch (IOException e) {
-            return false;
-        }
+        return !this.closed;
     }
 
     public void close() throws IOException {

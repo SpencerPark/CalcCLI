@@ -3,12 +3,13 @@ package io.github.spencerpark.calccli;
 import io.github.spencerpark.calccli.command.Command;
 import io.github.spencerpark.calccli.expression.Environment;
 import io.github.spencerpark.calccli.function.FunctionBank;
-import io.github.spencerpark.calccli.parser.CharStream;
-import io.github.spencerpark.calccli.parser.EquationLexer;
-import io.github.spencerpark.calccli.parser.EquationParser;
-import io.github.spencerpark.calccli.parser.StringCharStream;
+import io.github.spencerpark.calccli.parser.*;
 
-import java.util.Arrays;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Scanner;
 
 public class CalcCLI {
@@ -31,6 +32,7 @@ public class CalcCLI {
             stop = true;
             System.out.println("Stopping...");
         });
+        environment.registerCommand("load", CalcCLI::loadCommand);
 
         String command;
         while (!stop) {
@@ -44,6 +46,10 @@ public class CalcCLI {
         }
 
         in.close();
+    }
+
+    private static void printErr(String msg) {
+        System.out.println("err > " + msg);
     }
 
     private static void handleInput(String in, Environment env) {
@@ -60,7 +66,53 @@ public class CalcCLI {
                 cmd.execute(env);
             }
         } catch (Exception e) {
-            System.out.println("err > " + e.getMessage());
+            printErr(e.getMessage());
+        }
+    }
+
+    private static void loadCommand(Environment env, String[] args) {
+        if (args.length != 1) {
+            printErr("Expected 1 argument: the file to load");
+        } else {
+            File file = new File(args[0]);
+            InputStream inScript = null;
+            try {
+                if (file.isFile()) {
+                    System.out.println("Loading \"" + args[0] + "\"");
+                    inScript = new FileInputStream(file);
+                } else {
+                    inScript = CalcCLI.class.getClassLoader().getResourceAsStream(args[0]);
+                    if (inScript == null) {
+                        printErr("Cannot find resource \"" + args[0] + "\"");
+                        return;
+                    } else {
+                        System.out.println("Loading standard lib \"" + args[0] + "\"");
+                    }
+                }
+
+                CharStream charsIn = new ReaderCharStream(inScript);
+                EquationLexer lexer = new EquationLexer(charsIn);
+                EquationParser parser = new EquationParser(lexer);
+
+                List<Command> cmds = parser.parseCommands();
+                for (Command cmd : cmds) {
+                    try {
+                        cmd.execute(env);
+                    } catch (Exception e) {
+                        printErr(e.getMessage());
+                    }
+                }
+
+                System.out.println("Loaded \"" + args[0] + "\"");
+            } catch (Exception e) {
+                printErr(e.getMessage());
+                if (inScript != null) try {
+                    inScript.close();
+                } catch (IOException e1) {
+                    printErr("closing input script: "+e1.getMessage());
+                }
+            }
+
         }
     }
 }
