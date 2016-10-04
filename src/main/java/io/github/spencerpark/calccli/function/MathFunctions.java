@@ -21,6 +21,14 @@ public class MathFunctions {
     public static final SimpleFunction LOG = Math::log10;
     public static final SimpleFunction EXP = Math::exp;
 
+    public static final SimpleFunction RAD = Math::toRadians;
+    public static final SimpleFunction DEG = Math::toDegrees;
+
+    public static final SimpleFunction FLOOR = Math::floor;
+    public static final SimpleFunction CEIL = Math::ceil;
+
+    public static final SimpleFunction RAND = (arg) -> Math.random() * arg;
+
     public static final SimpleFunction FAC = arg -> {
         if (arg < 0)
             throw new IllegalArgumentException("Math error: Factorial of negative number "+arg);
@@ -32,7 +40,12 @@ public class MathFunctions {
     };
 
     public static final SimpleBiFunction CHOOSE = (n, k) ->
-            FAC.call(n) / ( FAC.call(k) * FAC.call(n - k) );
+            FAC.call(n) / (FAC.call(k) * FAC.call(n - k));
 
     public static final SimpleBiFunction POW = Math::pow;
+
+    public static final SimpleBiFunction MAX = Math::max;
+    public static final SimpleBiFunction MIN = Math::min;
+
+    public static final SimpleBiFunction HYPOT = Math::hypot;
 }

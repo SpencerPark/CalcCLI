@@ -35,10 +35,23 @@ public class FunctionBank {
         functions.put("log", MathFunctions.LOG);
         functions.put("exp", MathFunctions.EXP);
 
+        functions.put("rad", MathFunctions.RAD);
+        functions.put("deg", MathFunctions.DEG);
+
+        functions.put("floor", MathFunctions.FLOOR);
+        functions.put("ceil", MathFunctions.CEIL);
+
+        functions.put("rand", MathFunctions.RAND);
+
         functions.put("fac", MathFunctions.FAC);
 
         functions.put("C", MathFunctions.CHOOSE);
         functions.put("pow", MathFunctions.POW);
+
+        functions.put("max", MathFunctions.MAX);
+        functions.put("min", MathFunctions.MIN);
+
+        functions.put("hypot", MathFunctions.HYPOT);
     }
 
     public void define(String name, UserDefinedFunction function) {

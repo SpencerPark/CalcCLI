@@ -32,7 +32,7 @@ public class CalcCLI {
             stop = true;
             System.out.println("Stopping...");
         });
-        environment.registerCommand("load", CalcCLI::loadCommand);
+        environment.registerCommand("run", CalcCLI::runCommand);
 
         String command;
         while (!stop) {
@@ -70,7 +70,7 @@ public class CalcCLI {
         }
     }
 
-    private static void loadCommand(Environment env, String[] args) {
+    private static void runCommand(Environment env, String[] args) {
         if (args.length != 1) {
             printErr("Expected 1 argument: the file to load");
         } else {

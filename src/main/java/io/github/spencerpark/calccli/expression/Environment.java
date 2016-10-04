@@ -1,6 +1,5 @@
 package io.github.spencerpark.calccli.expression;
 
-import io.github.spencerpark.calccli.command.Command;
 import io.github.spencerpark.calccli.command.WorkspaceCommand;
 import io.github.spencerpark.calccli.function.FunctionBank;
 
