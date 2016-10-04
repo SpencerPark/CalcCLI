@@ -14,6 +14,7 @@ public enum SymbolType {
 
     NUMBER,
     IDENTIFIER,
+    STRING,
 
     EOS;
 }

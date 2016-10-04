@@ -1,5 +1,7 @@
 package io.github.spencerpark.calccli.expression;
 
+import io.github.spencerpark.calccli.command.Command;
+import io.github.spencerpark.calccli.command.WorkspaceCommand;
 import io.github.spencerpark.calccli.function.FunctionBank;
 
 import java.util.HashMap;
@@ -9,17 +11,20 @@ public class Environment {
     private final Environment superEnvironment;
     private final Map<String, Double> memory;
     private final FunctionBank functionBank;
+    private final Map<String, WorkspaceCommand> commandBank;
 
     public Environment(Environment superEnvironment) {
         this.superEnvironment = superEnvironment;
         this.functionBank = superEnvironment.getFunctionBank();
         this.memory = new HashMap<>();
+        this.commandBank = new HashMap<>();
     }
 
     public Environment(FunctionBank functionBank) {
         this.superEnvironment = null;
         this.functionBank = functionBank;
         this.memory = new HashMap<>();
+        this.commandBank = new HashMap<>();
     }
 
     public double getVariable(String variable) {
@@ -37,6 +42,19 @@ public class Environment {
 
     public FunctionBank getFunctionBank() {
         return functionBank;
+    }
+
+    public void registerCommand(String name, WorkspaceCommand cmd) {
+        this.commandBank.put(name, cmd);
+    }
+
+    public void executeCommand(String name, String... args) {
+        WorkspaceCommand cmd = this.commandBank.get(name.toLowerCase());
+        if (cmd == null) {
+            System.out.println("Unknown command: "+name.toLowerCase());
+        } else {
+            cmd.execute(this, args);
+        }
     }
 
     @Override

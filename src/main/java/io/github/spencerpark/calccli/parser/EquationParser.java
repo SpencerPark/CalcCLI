@@ -1,9 +1,6 @@
 package io.github.spencerpark.calccli.parser;
 
-import io.github.spencerpark.calccli.command.AssignmentCommand;
-import io.github.spencerpark.calccli.command.Command;
-import io.github.spencerpark.calccli.command.FunctionDefinitionCommand;
-import io.github.spencerpark.calccli.command.PrintCommand;
+import io.github.spencerpark.calccli.command.*;
 import io.github.spencerpark.calccli.expression.*;
 import io.github.spencerpark.calccli.function.UserDefinedFunction;
 
@@ -78,7 +75,7 @@ public class EquationParser {
     /**
      * Parse
      * <pre>
-     * command ::= ( assign | expr ) SEMI_COLON
+     * command ::= ( assign | expr | ID STRING* ) SEMI_COLON
      * </pre>
      *
      * @return an expression representing the parsed expression
@@ -94,6 +91,16 @@ public class EquationParser {
                 if (la2.getType() == SymbolType.IDENTIFIER) {
                     cmd = parseAssign();
                 }
+            } else if (la1.getType() == SymbolType.SEMI_COLON
+                    || la1.getType() == SymbolType.STRING) {
+
+                String cmdName = tokens.consume().getText();
+                List<String> args = new LinkedList<>();
+                while (tokens.peek().getType() == SymbolType.STRING) {
+                    args.add(tokens.consume().getText());
+                }
+
+                cmd = new ControlCommand(cmdName, args.toArray(new String[args.size()]));
             }
         }
 

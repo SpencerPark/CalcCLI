@@ -17,6 +17,7 @@ public class EquationLexer implements Supplier<Token> {
     private static final Token DOLLAR = new Token(SymbolType.DOLLAR, "$");
     private static final Function<String, Token> NUMBER = (num) -> new Token(SymbolType.NUMBER, num);
     private static final Function<String, Token> IDENTIFIER = (id) -> new Token(SymbolType.IDENTIFIER, id);
+    private static final Function<String, Token> STRING = (contents) -> new Token(SymbolType.STRING, contents);
 
     private static boolean isDigit(char c) {
         return '0' <= c && c <= '9';
@@ -52,6 +53,16 @@ public class EquationLexer implements Supplier<Token> {
                 case ';': return SEMI_COLON;
                 case '=': return ASSIGN;
                 case '$': return DOLLAR;
+                case '"':
+                    StringBuilder string = new StringBuilder();
+                    while (input.hasNext() && input.peek() != '"') {
+                        string.append(input.next());
+                    }
+                    if (!input.hasNext()) {
+                        throw new ParseException("string not closed: " + string.toString());
+                    }
+                    input.next();
+                    return STRING.apply(string.toString());
             }
             if (isDigit(c)) {
                 StringBuilder digit = new StringBuilder(Character.toString(c));
