@@ -2,23 +2,31 @@ package io.github.spencerpark.calccli.expression;
 
 import io.github.spencerpark.calccli.function.Function;
 
-public class FunctionCall implements DoubleExpression {
+public class FunctionCall<R> implements Expression<R> {
     private final String functionName;
-    private final DoubleExpression[] args;
+    private final Expression<?>[] args;
+    private final Class<? extends R> returnType;
 
-    public FunctionCall(String functionName, DoubleExpression[] args) {
+    public FunctionCall(String functionName, Expression<?>[] args, Class<? extends R> returnType) {
         this.functionName = functionName;
         this.args = args;
+        this.returnType = returnType;
     }
 
     @Override
-    public double eval(Environment environment) {
-        Function f = environment.getFunctionBank().resolve(functionName);
+    public R evaluate(Environment environment) {
+        Function<?> f = environment.getFunctionBank().resolve(functionName, args);
 
-        double[] args = new double[this.args.length];
-        for (int i = 0; i < args.length; i++)
-            args[i] = this.args[i].eval(environment);
+        Object r = f.call(environment, args);
+        if (!returnType.isInstance(r))
+                throw new ClassCastException(String.format("%s returned a %s not %s",
+                        functionName, r.getClass().getSimpleName(), returnType.getSimpleName()));
 
-        return f.call(environment, args);
+        return (R) r;
+    }
+
+    @Override
+    public Class<? extends R> getType() {
+        return returnType;
     }
 }

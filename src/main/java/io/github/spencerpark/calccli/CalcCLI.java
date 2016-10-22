@@ -16,12 +16,14 @@ public class CalcCLI {
     private static EquationLexer lexer;
     private static EquationParser parser;
     private static boolean stop = false;
+    private static boolean verbose = false;
 
     public static void main(String[] args) {
+        if (args.length == 1 && args[0].equalsIgnoreCase("verbose")) verbose = true;
         Scanner in = new Scanner(System.in);
 
         FunctionBank functions = new FunctionBank();
-        Environment environment = new Environment(functions);
+        Environment environment = new Environment("global", functions);
 
         //Put defaults
         environment.setVariable("pi", Math.PI);
@@ -66,6 +68,7 @@ public class CalcCLI {
                 cmd.execute(env);
             }
         } catch (Exception e) {
+            if (verbose) e.printStackTrace();
             printErr(e.getMessage());
         }
     }

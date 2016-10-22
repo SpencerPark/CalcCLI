@@ -1,14 +1,19 @@
 package io.github.spencerpark.calccli.expression;
 
-public class Constant implements DoubleExpression {
-    private final double val;
+public class Constant<T> implements Expression<T> {
+    private final T val;
 
-    public Constant(double val) {
+    public Constant(T val) {
         this.val = val;
     }
 
     @Override
-    public double eval(Environment env) {
+    public Class<? extends T> getType() {
+        return (Class<? extends T>) val.getClass();
+    }
+
+    @Override
+    public T evaluate(Environment env) {
         return val;
     }
 }

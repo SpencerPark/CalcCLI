@@ -1,18 +1,23 @@
 package io.github.spencerpark.calccli.expression;
 
-public class BinaryOperation implements DoubleExpression {
+public class BinaryOperation implements Expression<Double> {
     private final BinaryOperator operator;
-    private final DoubleExpression left;
-    private final DoubleExpression right;
+    private final Expression<Double> left;
+    private final Expression<Double> right;
 
-    public BinaryOperation(DoubleExpression left, BinaryOperator operator,  DoubleExpression right) {
+    public BinaryOperation(Expression<Double> left, BinaryOperator operator,  Expression<Double> right) {
         this.operator = operator;
         this.left = left;
         this.right = right;
     }
 
     @Override
-    public double eval(Environment env) {
-        return operator.eval(env, left, right);
+    public Double evaluate(Environment env) {
+        return operator.evaluate(env, left, right);
+    }
+
+    @Override
+    public Class<? extends Double> getType() {
+        return Double.class;
     }
 }

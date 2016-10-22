@@ -3,28 +3,28 @@ package io.github.spencerpark.calccli.expression;
 public enum BinaryOperator {
     PLUS {
         @Override
-        public double eval(Environment env, DoubleExpression left, DoubleExpression right) {
-            return left.eval(env) + right.eval(env);
+        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
+            return left.evaluate(env) + right.evaluate(env);
         }
     },
     MINUS {
         @Override
-        public double eval(Environment env, DoubleExpression left, DoubleExpression right) {
-            return left.eval(env) - right.eval(env);
+        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
+            return left.evaluate(env) - right.evaluate(env);
         }
     },
     TIMES {
         @Override
-        public double eval(Environment env, DoubleExpression left, DoubleExpression right) {
-            return left.eval(env) * right.eval(env);
+        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
+            return left.evaluate(env) * right.evaluate(env);
         }
     },
     DIVIDE {
         @Override
-        public double eval(Environment env, DoubleExpression left, DoubleExpression right) {
-            return left.eval(env) / right.eval(env);
+        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
+            return left.evaluate(env) / right.evaluate(env);
         }
     };
 
-    public abstract double eval(Environment env, DoubleExpression left, DoubleExpression right);
+    public abstract Double evaluate(Environment env, Expression<Double> left, Expression<Double> right);
 }

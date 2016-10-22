@@ -105,7 +105,7 @@ public class EquationParser {
         }
 
         if (cmd == null) {
-            DoubleExpression expr = parseExpression();
+            Expression<Double> expr = parseExpression();
             cmd = new PrintCommand(expr);
         }
 
@@ -154,16 +154,16 @@ public class EquationParser {
                 return throwUnexpectedToken(tokens.peek(), SymbolType.ASSIGN);
             tokens.consume();
 
-            DoubleExpression expr = parseExpression();
-            UserDefinedFunction fn = new UserDefinedFunction(params.toArray(new String[params.size()]), expr);
+            Expression<Double> expr = parseExpression();
+            UserDefinedFunction<Double> fn = new UserDefinedFunction<>(id.getText(), params.toArray(new String[params.size()]), expr);
 
-            return new FunctionDefinitionCommand(id.getText(), fn);
+            return new FunctionDefinitionCommand(fn);
         } else {
             if (tokens.peek().getType() != SymbolType.ASSIGN)
                 return throwUnexpectedToken(id, SymbolType.ASSIGN);
             tokens.consume();
 
-            DoubleExpression expr = parseExpression();
+            Expression<Double> expr = parseExpression();
 
             return new AssignmentCommand(id.getText(), expr);
         }
@@ -177,7 +177,7 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public DoubleExpression parseExpression() {
+    public Expression<Double> parseExpression() {
         Token next = tokens.peek();
         boolean unaryMinus = false;
         if (next.getType() == SymbolType.PLUS) tokens.consume();
@@ -186,11 +186,11 @@ public class EquationParser {
             unaryMinus = true;
         }
 
-        DoubleExpression expr = parseTerm();
+        Expression<Double> expr = parseTerm();
         if (unaryMinus) expr = new UnaryMinus(expr);
 
         BinaryOperator operator;
-        DoubleExpression right;
+        Expression<Double> right;
         next = tokens.peek();
         while (PLUS_OR_MINUS.get(next.getType().ordinal())) {
             if (next.getType() == SymbolType.PLUS) operator = BinaryOperator.PLUS;
@@ -214,11 +214,11 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public DoubleExpression parseTerm() {
-        DoubleExpression term = parseFactor();
+    public Expression<Double> parseTerm() {
+        Expression<Double> term = parseFactor();
 
         BinaryOperator operator;
-        DoubleExpression right;
+        Expression<Double> right;
         Token next = tokens.peek();
         while (TIMES_OR_DIVIDE.get(next.getType().ordinal())) {
             if (next.getType() == SymbolType.TIMES) operator = BinaryOperator.TIMES;
@@ -242,14 +242,14 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public DoubleExpression parseFactor() {
+    public Expression<Double> parseFactor() {
         Token next = tokens.peek();
         if (next.getType() == SymbolType.NUMBER) {
             tokens.consume();
-            return new Constant(Double.parseDouble(next.getText()));
+            return new Constant<>(Double.parseDouble(next.getText()));
         } else if (next.getType() == SymbolType.L_PAREN) {
             tokens.consume();
-            DoubleExpression expr = parseExpression();
+            Expression<Double> expr = parseExpression();
             next = tokens.peek();
             if (next.getType() == SymbolType.R_PAREN) tokens.consume();
             else return throwUnexpectedToken(next, SymbolType.R_PAREN);
@@ -274,7 +274,7 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public DoubleExpression parseFunction() {
+    public Expression<Double> parseFunction() {
         Token id = tokens.peek();
         if (id.getType() != SymbolType.IDENTIFIER)
             return throwUnexpectedToken(id, SymbolType.IDENTIFIER);
@@ -284,7 +284,7 @@ public class EquationParser {
             return throwUnexpectedToken(tokens.peek(), SymbolType.L_PAREN);
         tokens.consume();
 
-        List<DoubleExpression> args = new LinkedList<>();
+        List<Expression<Double>> args = new LinkedList<>();
         if (FIRST_EXPRESSION.get(tokens.peek().getType().ordinal())) {
             args.add(parseExpression());
             while (tokens.peek().getType() == SymbolType.COMMA) {
@@ -301,6 +301,6 @@ public class EquationParser {
             return throwUnexpectedToken(tokens.peek(), SymbolType.R_PAREN);
         tokens.consume();
 
-        return new FunctionCall(id.getText(), args.toArray(new DoubleExpression[args.size()]));
+        return new FunctionCall<>(id.getText(), args.toArray(new Expression[args.size()]), Double.class);
     }
 }

@@ -7,36 +7,32 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-    private final Environment superEnvironment;
-    private final Map<String, Double> memory;
+    private final Memory memory;
     private final FunctionBank functionBank;
     private final Map<String, WorkspaceCommand> commandBank;
 
-    public Environment(Environment superEnvironment) {
-        this.superEnvironment = superEnvironment;
-        this.functionBank = superEnvironment.getFunctionBank();
-        this.memory = new HashMap<>();
-        this.commandBank = new HashMap<>();
-    }
-
-    public Environment(FunctionBank functionBank) {
-        this.superEnvironment = null;
+    public Environment(String name, FunctionBank functionBank) {
         this.functionBank = functionBank;
-        this.memory = new HashMap<>();
+        this.memory = new Memory(name);
         this.commandBank = new HashMap<>();
     }
 
-    public double getVariable(String variable) {
-        Double val = memory.get(variable);
-        if (val == null && superEnvironment != null)
-            val = superEnvironment.getVariable(variable);
-        if (val == null)
-            throw new NullPointerException(variable + " is not defined.");
-        return val;
+    private Environment(String name, Memory memory, FunctionBank functionBank) {
+        this.functionBank = functionBank;
+        this.memory = new Memory(name, memory);
+        this.commandBank = new HashMap<>();
     }
 
-    public void setVariable(String variable, double value) {
-        this.memory.put(variable, value);
+    public Environment newNestedScope(String name) {
+        return new Environment(name, new Memory(name), this.functionBank);
+    }
+
+    public <T> T getVariable(String variable, Class<T> type) {
+        return memory.getOrThrow(variable, type);
+    }
+
+    public void setVariable(String variable, Object value) {
+        this.memory.set(variable, value);
     }
 
     public FunctionBank getFunctionBank() {
@@ -59,12 +55,11 @@ public class Environment {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Memory:\n");
-        this.memory.forEach((var, val) ->
-                sb.append('\t').append(var).append(" -> ").append(val).append('\n'));
+        this.memory.toString(sb);
 
         sb.append("Functions:\n");
         this.functionBank.forEachDefined((name, function) ->
-                sb.append('\t').append(name).append(function).append('\n'));
+                sb.append('\t').append(function).append('\n'));
 
         return sb.toString();
     }
