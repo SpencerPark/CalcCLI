@@ -1,6 +1,8 @@
 package io.github.spencerpark.calccli.expression;
 
-public class VariableResolution implements Expression<Double> {
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
+
+public class VariableResolution implements Expression {
     private final String variable;
 
     public VariableResolution(String variable) {
@@ -8,12 +10,7 @@ public class VariableResolution implements Expression<Double> {
     }
 
     @Override
-    public Class<? extends Double> getType() {
-        return Double.class;
-    }
-
-    @Override
-    public Double evaluate(Environment environment) {
-        return environment.getVariable(variable, Double.class);
+    public CalcObject evaluate(Environment environment) {
+        return environment.getVariable(variable);
     }
 }

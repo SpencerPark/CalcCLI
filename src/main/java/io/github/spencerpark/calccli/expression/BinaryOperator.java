@@ -1,30 +1,46 @@
 package io.github.spencerpark.calccli.expression;
 
+import io.github.spencerpark.calccli.expression.objects.CalcDecimal;
+import io.github.spencerpark.calccli.expression.objects.CalcInt;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
+
 public enum BinaryOperator {
     PLUS {
         @Override
-        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
-            return left.evaluate(env) + right.evaluate(env);
+        public CalcObject evaluate(CalcObject left, CalcObject right) {
+            if (left.isWholeNumber() && right.isWholeNumber())
+                return new CalcInt(left.getAsWholeNumber() + right.getAsWholeNumber());
+
+            return new CalcDecimal(left.getAsDecimal() + right.getAsDecimal());
         }
     },
     MINUS {
         @Override
-        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
-            return left.evaluate(env) - right.evaluate(env);
+        public CalcObject evaluate(CalcObject left, CalcObject right) {
+            if (left.isWholeNumber() && right.isWholeNumber())
+                return new CalcInt(left.getAsWholeNumber() - right.getAsWholeNumber());
+
+            return new CalcDecimal(left.getAsDecimal() - right.getAsDecimal());
         }
     },
     TIMES {
         @Override
-        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
-            return left.evaluate(env) * right.evaluate(env);
+        public CalcObject evaluate(CalcObject left, CalcObject right) {
+            if (left.isWholeNumber() && right.isWholeNumber())
+                return new CalcInt(left.getAsWholeNumber() * right.getAsWholeNumber());
+
+            return new CalcDecimal(left.getAsDecimal() * right.getAsDecimal());
         }
     },
     DIVIDE {
         @Override
-        public Double evaluate(Environment env, Expression<Double> left, Expression<Double> right) {
-            return left.evaluate(env) / right.evaluate(env);
+        public CalcObject evaluate(CalcObject left, CalcObject right) {
+            if (left.isWholeNumber() && right.isWholeNumber())
+                return new CalcInt(left.getAsWholeNumber() / right.getAsWholeNumber());
+
+            return new CalcDecimal(left.getAsDecimal() / right.getAsDecimal());
         }
     };
 
-    public abstract Double evaluate(Environment env, Expression<Double> left, Expression<Double> right);
+    public abstract CalcObject evaluate(CalcObject left, CalcObject right);
 }

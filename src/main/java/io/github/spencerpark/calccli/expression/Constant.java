@@ -1,19 +1,16 @@
 package io.github.spencerpark.calccli.expression;
 
-public class Constant<T> implements Expression<T> {
-    private final T val;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 
-    public Constant(T val) {
+public class Constant implements Expression {
+    private final CalcObject val;
+
+    public Constant(CalcObject val) {
         this.val = val;
     }
 
     @Override
-    public Class<? extends T> getType() {
-        return (Class<? extends T>) val.getClass();
-    }
-
-    @Override
-    public T evaluate(Environment env) {
+    public CalcObject evaluate(Environment env) {
         return val;
     }
 }

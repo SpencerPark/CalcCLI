@@ -2,6 +2,8 @@ package io.github.spencerpark.calccli;
 
 import io.github.spencerpark.calccli.command.Command;
 import io.github.spencerpark.calccli.expression.Environment;
+import io.github.spencerpark.calccli.expression.objects.CalcDecimal;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 import io.github.spencerpark.calccli.function.FunctionBank;
 import io.github.spencerpark.calccli.parser.*;
 
@@ -26,8 +28,8 @@ public class CalcCLI {
         Environment environment = new Environment("global", functions);
 
         //Put defaults
-        environment.setVariable("pi", Math.PI);
-        environment.setVariable("e", Math.E);
+        environment.setVariable("pi", new CalcDecimal(Math.PI));
+        environment.setVariable("e", new CalcDecimal(Math.E));
 
         environment.registerCommand("env", (env, cmdArgs) -> System.out.println(env));
         environment.registerCommand("stop", (env, cmdArgs) -> {
@@ -60,7 +62,7 @@ public class CalcCLI {
         if (lexer == null) lexer = new EquationLexer(chars);
         else               lexer.setInput(chars);
 
-        if (parser == null) parser = new EquationParser(lexer);
+        if (parser == null) parser = new EquationParser(lexer, env);
         else                parser.reset();
 
         try {
@@ -95,7 +97,7 @@ public class CalcCLI {
 
                 CharStream charsIn = new ReaderCharStream(inScript);
                 EquationLexer lexer = new EquationLexer(charsIn);
-                EquationParser parser = new EquationParser(lexer);
+                EquationParser parser = new EquationParser(lexer, env);
 
                 List<Command> cmds = parser.parseCommands();
                 for (Command cmd : cmds) {

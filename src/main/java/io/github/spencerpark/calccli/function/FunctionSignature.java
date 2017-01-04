@@ -1,33 +1,25 @@
 package io.github.spencerpark.calccli.function;
 
-import io.github.spencerpark.calccli.expression.Expression;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 
 import java.util.Arrays;
 
 public class FunctionSignature {
     private final String name;
     //Don't expose this array, it needs to be final
-    private final Class<?>[] args;
+    private final String[] params;
 
-    public FunctionSignature(String name, Class<?>[] params) {
+    public FunctionSignature(String name, String... params) {
         this.name = name;
-        this.args = params;
+        this.params = params;
     }
 
     public String getName() {
         return name;
     }
 
-    public int numArgs() {
-        return this.args.length;
-    }
-
-    public Class<?> getParamType(int paramIndex) {
-        if (paramIndex >= this.args.length)
-            throw new IllegalArgumentException(String.format("paramIndex=%d out of bounds. Number of parameters is %d",
-                    paramIndex, this.args.length));
-
-        return this.args[paramIndex];
+    public int numParams() {
+        return this.params.length;
     }
 
     /**
@@ -36,23 +28,15 @@ public class FunctionSignature {
      * @throws IllegalArgumentException if it cannot be called. This will contain a description
      * of why
      */
-    public void checkCanCallWith(Expression<?>[] args) throws IllegalArgumentException {
-        if (this.args.length > args.length)
+    public void checkCanCallWith(CalcObject[] args) throws IllegalArgumentException {
+        if (this.params.length > args.length)
             throw new IllegalArgumentException("Too few arguments. " +
-                    "Params: " + Arrays.toString(this.args) + ". " +
+                    "Params: " + Arrays.toString(this.params) + ". " +
                     "Args: " + Arrays.toString(args));
-        if (this.args.length < args.length)
+        if (this.params.length < args.length)
             throw new IllegalArgumentException("Too many arguments. " +
-                    "Params: " + Arrays.toString(this.args) + ". " +
+                    "Params: " + Arrays.toString(this.params) + ". " +
                     "Args: " + Arrays.toString(args));
-
-
-        for (int i = 0; i < args.length; i++) {
-            if (!this.args[i].isAssignableFrom(args[i].getType()))
-                throw new IllegalArgumentException("Illegal argument " + i + " type. " +
-                        "Was: " + args[i].getType().getSimpleName() + ". " +
-                        "Expected: " + this.args[i].getSimpleName() + ".");
-        }
     }
 
     @Override
@@ -63,11 +47,7 @@ public class FunctionSignature {
         FunctionSignature that = (FunctionSignature) o;
 
         if (!name.equals(that.name)) return false;
-        if (this.args.length != that.args.length) return false;
-
-        for (int arg = 0; arg < this.args.length; arg++) {
-            if (!this.args[arg].isAssignableFrom(that.args[arg])) return false;
-        }
+        if (this.params.length != that.params.length) return false;
 
         return true;
     }
@@ -77,7 +57,7 @@ public class FunctionSignature {
         //It is unfortunate but we can't use the classes hash in the hash because
         //equals() uses isAssignableFrom()
         int result = name.hashCode();
-        result = 31 * result + args.length;
+        result = 31 * result + params.length;
         return result;
     }
 
@@ -87,10 +67,10 @@ public class FunctionSignature {
 
         sb.append("(");
 
-        if (args.length != 0) {
-            sb.append(args[0].getSimpleName());
-            for (int i = 1; i < args.length; i++)
-                sb.append(", ").append(args[i]);
+        if (params.length != 0) {
+            sb.append(params[0]);
+            for (int i = 1; i < params.length; i++)
+                sb.append(", ").append(params[i]);
         }
 
         sb.append(")");

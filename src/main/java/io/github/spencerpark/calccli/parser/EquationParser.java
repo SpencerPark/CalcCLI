@@ -2,6 +2,7 @@ package io.github.spencerpark.calccli.parser;
 
 import io.github.spencerpark.calccli.command.*;
 import io.github.spencerpark.calccli.expression.*;
+import io.github.spencerpark.calccli.expression.objects.CalcDecimal;
 import io.github.spencerpark.calccli.function.UserDefinedFunction;
 
 import java.util.BitSet;
@@ -55,9 +56,11 @@ public class EquationParser {
     private static final int REQUIRED_LOOKAHEAD = 3;
 
     private final TokenStream tokens;
+    private final Environment global;
 
-    public EquationParser(Supplier<Token> tokens) {
+    public EquationParser(Supplier<Token> tokens, Environment global) {
         this.tokens = new TokenStream(REQUIRED_LOOKAHEAD, tokens);
+        this.global = global;
     }
 
     public void reset() {
@@ -105,7 +108,7 @@ public class EquationParser {
         }
 
         if (cmd == null) {
-            Expression<Double> expr = parseExpression();
+            Expression expr = parseExpression();
             cmd = new PrintCommand(expr);
         }
 
@@ -154,8 +157,8 @@ public class EquationParser {
                 return throwUnexpectedToken(tokens.peek(), SymbolType.ASSIGN);
             tokens.consume();
 
-            Expression<Double> expr = parseExpression();
-            UserDefinedFunction<Double> fn = new UserDefinedFunction<>(id.getText(), params.toArray(new String[params.size()]), expr);
+            Expression expr = parseExpression();
+            UserDefinedFunction fn = new UserDefinedFunction(this.global, id.getText(), params.toArray(new String[params.size()]), expr);
 
             return new FunctionDefinitionCommand(fn);
         } else {
@@ -163,7 +166,7 @@ public class EquationParser {
                 return throwUnexpectedToken(id, SymbolType.ASSIGN);
             tokens.consume();
 
-            Expression<Double> expr = parseExpression();
+            Expression expr = parseExpression();
 
             return new AssignmentCommand(id.getText(), expr);
         }
@@ -177,7 +180,7 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public Expression<Double> parseExpression() {
+    public Expression parseExpression() {
         Token next = tokens.peek();
         boolean unaryMinus = false;
         if (next.getType() == SymbolType.PLUS) tokens.consume();
@@ -186,11 +189,11 @@ public class EquationParser {
             unaryMinus = true;
         }
 
-        Expression<Double> expr = parseTerm();
+        Expression expr = parseTerm();
         if (unaryMinus) expr = new UnaryMinus(expr);
 
         BinaryOperator operator;
-        Expression<Double> right;
+        Expression right;
         next = tokens.peek();
         while (PLUS_OR_MINUS.get(next.getType().ordinal())) {
             if (next.getType() == SymbolType.PLUS) operator = BinaryOperator.PLUS;
@@ -214,11 +217,11 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public Expression<Double> parseTerm() {
-        Expression<Double> term = parseFactor();
+    public Expression parseTerm() {
+        Expression term = parseFactor();
 
         BinaryOperator operator;
-        Expression<Double> right;
+        Expression right;
         Token next = tokens.peek();
         while (TIMES_OR_DIVIDE.get(next.getType().ordinal())) {
             if (next.getType() == SymbolType.TIMES) operator = BinaryOperator.TIMES;
@@ -242,14 +245,14 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public Expression<Double> parseFactor() {
+    public Expression parseFactor() {
         Token next = tokens.peek();
         if (next.getType() == SymbolType.NUMBER) {
             tokens.consume();
-            return new Constant<>(Double.parseDouble(next.getText()));
+            return new Constant(new CalcDecimal(Double.parseDouble(next.getText())));
         } else if (next.getType() == SymbolType.L_PAREN) {
             tokens.consume();
-            Expression<Double> expr = parseExpression();
+            Expression expr = parseExpression();
             next = tokens.peek();
             if (next.getType() == SymbolType.R_PAREN) tokens.consume();
             else return throwUnexpectedToken(next, SymbolType.R_PAREN);
@@ -274,7 +277,7 @@ public class EquationParser {
      *
      * @return an expression representing the parsed expression
      */
-    public Expression<Double> parseFunction() {
+    public Expression parseFunction() {
         Token id = tokens.peek();
         if (id.getType() != SymbolType.IDENTIFIER)
             return throwUnexpectedToken(id, SymbolType.IDENTIFIER);
@@ -284,7 +287,7 @@ public class EquationParser {
             return throwUnexpectedToken(tokens.peek(), SymbolType.L_PAREN);
         tokens.consume();
 
-        List<Expression<Double>> args = new LinkedList<>();
+        List<Expression> args = new LinkedList<>();
         if (FIRST_EXPRESSION.get(tokens.peek().getType().ordinal())) {
             args.add(parseExpression());
             while (tokens.peek().getType() == SymbolType.COMMA) {
@@ -301,6 +304,6 @@ public class EquationParser {
             return throwUnexpectedToken(tokens.peek(), SymbolType.R_PAREN);
         tokens.consume();
 
-        return new FunctionCall<>(id.getText(), args.toArray(new Expression[args.size()]), Double.class);
+        return new FunctionCall(id.getText(), args.toArray(new Expression[args.size()]));
     }
 }

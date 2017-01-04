@@ -1,32 +1,27 @@
 package io.github.spencerpark.calccli.expression;
 
-import io.github.spencerpark.calccli.function.Function;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 
-public class FunctionCall<R> implements Expression<R> {
+public class FunctionCall implements Expression {
     private final String functionName;
-    private final Expression<?>[] args;
-    private final Class<? extends R> returnType;
+    private final Expression[] args;
 
-    public FunctionCall(String functionName, Expression<?>[] args, Class<? extends R> returnType) {
+    public FunctionCall(String functionName, Expression[] args) {
         this.functionName = functionName;
         this.args = args;
-        this.returnType = returnType;
     }
 
     @Override
-    public R evaluate(Environment environment) {
-        Function<?> f = environment.getFunctionBank().resolve(functionName, args);
-
-        Object r = f.call(environment, args);
-        if (!returnType.isInstance(r))
-                throw new ClassCastException(String.format("%s returned a %s not %s",
-                        functionName, r.getClass().getSimpleName(), returnType.getSimpleName()));
-
-        return (R) r;
+    public CalcObject evaluate(Environment environment) {
+        return environment.getFunctionBank().call(functionName, evalArgs(environment, args));
     }
 
-    @Override
-    public Class<? extends R> getType() {
-        return returnType;
+    public static CalcObject[] evalArgs(Environment env, Expression... args) {
+        CalcObject[] evalArgs = new CalcObject[args.length];
+
+        for (int i = 0; i < args.length; i++)
+            evalArgs[i] = args[i].evaluate(env);
+
+        return evalArgs;
     }
 }

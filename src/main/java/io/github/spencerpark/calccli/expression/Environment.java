@@ -1,6 +1,7 @@
 package io.github.spencerpark.calccli.expression;
 
 import io.github.spencerpark.calccli.command.WorkspaceCommand;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 import io.github.spencerpark.calccli.function.FunctionBank;
 
 import java.util.HashMap;
@@ -24,14 +25,14 @@ public class Environment {
     }
 
     public Environment newNestedScope(String name) {
-        return new Environment(name, new Memory(name), this.functionBank);
+        return new Environment(name, new Memory(name, this.memory), this.functionBank);
     }
 
-    public <T> T getVariable(String variable, Class<T> type) {
-        return memory.getOrThrow(variable, type);
+    public CalcObject getVariable(String variable) {
+        return memory.getOrThrow(variable);
     }
 
-    public void setVariable(String variable, Object value) {
+    public void setVariable(String variable, CalcObject value) {
         this.memory.set(variable, value);
     }
 
@@ -58,7 +59,7 @@ public class Environment {
         this.memory.toString(sb);
 
         sb.append("Functions:\n");
-        this.functionBank.forEachDefined((name, function) ->
+        this.functionBank.forEachDefined(function ->
                 sb.append('\t').append(function).append('\n'));
 
         return sb.toString();

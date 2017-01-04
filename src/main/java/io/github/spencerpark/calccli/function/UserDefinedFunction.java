@@ -2,26 +2,25 @@ package io.github.spencerpark.calccli.function;
 
 import io.github.spencerpark.calccli.expression.Environment;
 import io.github.spencerpark.calccli.expression.Expression;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 
 import java.util.Arrays;
 
-public class UserDefinedFunction<R> implements Function<R> {
+public class UserDefinedFunction implements Function {
+    private final Environment env;
     private final String[] params;
-    private final Expression<R> expression;
+    private final Expression expression;
     private final FunctionSignature signature;
 
-    public UserDefinedFunction(String name, String[] params, Expression<R> expression) {
+    public UserDefinedFunction(Environment env, String name, String[] params, Expression expression) {
+        this.env = env;
         this.params = params;
         this.expression = expression;
-        //TODO in parser break params into types with a type descriptor
-        //temporary rebase to bring this up to date with the new function types
-        Class<?>[] paramTypes = new Class[params.length];
-        for (int i = 0; i < params.length; i++) paramTypes[i] = Double.class;
-        signature = new FunctionSignature(name, paramTypes);
+        signature = new FunctionSignature(name, params);
     }
 
     @Override
-    public R call(Environment env, Expression<?>[] args) {
+    public CalcObject call(CalcObject... args) {
         if (params.length > args.length)
             throw new IllegalArgumentException("Too few arguments. " +
                     "Params: " + Arrays.toString(params) + ". " +
@@ -33,7 +32,7 @@ public class UserDefinedFunction<R> implements Function<R> {
 
         Environment environment = env.newNestedScope(getSignature().toString());
         for (int i = 0; i < params.length; i++) {
-            environment.setVariable(params[i], args[i].evaluate(environment));
+            environment.setVariable(params[i], args[i]);
         }
 
         return this.expression.evaluate(environment);

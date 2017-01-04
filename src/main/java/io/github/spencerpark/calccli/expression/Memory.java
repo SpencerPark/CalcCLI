@@ -1,5 +1,7 @@
 package io.github.spencerpark.calccli.expression;
 
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,7 +10,7 @@ public class Memory {
     private final String name;
     private final Memory superTable;
     //The `declarations` are the actual `name -> value` mappings.
-    private final Map<String, Object> declarations;
+    private final Map<String, CalcObject> declarations;
 
     public Memory(String name) {
         this.name = name;
@@ -22,19 +24,12 @@ public class Memory {
         declarations = new HashMap<>();
     }
 
-    public void set(String identifier, Object value) {
+    public void set(String identifier, CalcObject value) {
         this.declarations.put(identifier, value);
     }
 
-    public <T> T get(String identifier, Class<T> type) {
-        Object value = get(identifier);
-        if (value == null)
-            return superTable == null ? null : superTable.get(identifier, type);
-        return type.isInstance(value) ? (T) value : null;
-    }
-
-    public Object get(String identifier) {
-        Object value = declarations.get(identifier);
+    public CalcObject get(String identifier) {
+        CalcObject value = declarations.get(identifier);
 
         if (value == null && superTable != null)
             return superTable.get(identifier);
@@ -42,35 +37,13 @@ public class Memory {
         return value;
     }
 
-    public <T> T getOrThrow(String identifier, Class<T> type) {
-        Object value = get(identifier);
+    public CalcObject getOrThrow(String identifier) {
+        CalcObject value = get(identifier);
 
         if (value == null)
             throw new NullPointerException(identifier);
 
-        if (!type.isInstance(value))
-            throw new ClassCastException(String.format("%s points to a %s not %s",
-                    identifier, value.getClass().getSimpleName(), type.getSimpleName()));
-
-        //Otherwise all is fine so we can safely cast and return the value
-        return (T) value;
-    }
-
-    public Class<?> getType(String identifier) {
-        Object value = get(identifier);
-        return value == null ? null : value.getClass();
-    }
-
-    public boolean identifierTypeIs(String identifier, Class<?> type) {
-        Object value = get(identifier);
-        return value != null && type.isAssignableFrom(value.getClass());
-    }
-
-    public void checkType(String identifier, Class<?> type) {
-        Object value = get(identifier);
-        if (value != null && !type.isAssignableFrom(value.getClass()))
-            throw new ClassCastException(String.format("%s points to a %s not %s",
-                    identifier, value.getClass().getSimpleName(), type.getSimpleName()));
+        return value;
     }
 
     public void checkExists(String identifier) {

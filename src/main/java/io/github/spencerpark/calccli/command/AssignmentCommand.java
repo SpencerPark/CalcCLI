@@ -5,9 +5,9 @@ import io.github.spencerpark.calccli.expression.Expression;
 
 public class AssignmentCommand implements Command {
     private final String variable;
-    private final Expression<?> value;
+    private final Expression value;
 
-    public AssignmentCommand(String variable, Expression<?> value) {
+    public AssignmentCommand(String variable, Expression value) {
         this.variable = variable;
         this.value = value;
     }

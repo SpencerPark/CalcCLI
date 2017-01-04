@@ -1,47 +1,59 @@
 package io.github.spencerpark.calccli.function;
 
-import io.github.spencerpark.calccli.expression.Expression;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class FunctionBank {
-    private final Map<FunctionSignature, Function> functions;
-    private final Map<FunctionSignature, UserDefinedFunction> customFunctions;
+    private final Map<String, Map<Integer, Function>> functions;
+    private final Map<String, Map<Integer, UserDefinedFunction>> customFunctions;
 
     public FunctionBank() {
         this.functions = new HashMap<>();
         this.customFunctions = new HashMap<>();
-        MathFunctions.forEach(f -> functions.put(f.getSignature(), f));
+        MathFunctions.forEach(f -> putFunction(functions, f));
+    }
+
+    private static <T extends Function> void putFunction(Map<String, Map<Integer, T>> bank, T f) {
+        FunctionSignature signature = f.getSignature();
+        bank.compute(signature.getName(), (name, map) -> {
+            if (map == null) map = new LinkedHashMap<>();
+            map.put(signature.numParams(), f);
+            return map;
+        });
+    }
+
+    private static <T> T getFunction(Map<String, Map<Integer, T>> bank, String name, int numParams) {
+        Map<Integer, T> overloads = bank.get(name);
+        if (overloads == null) return null;
+
+        return overloads.get(numParams);
     }
 
     public void define(UserDefinedFunction function) {
-        this.functions.put(function.getSignature(), function);
-        this.customFunctions.put(function.getSignature(), function);
+        putFunction(this.functions, function);
+        putFunction(this.customFunctions, function);
     }
 
-    public Function resolve(String name, Class<?>... params) {
-        FunctionSignature signature = new FunctionSignature(name, params);
-        Function fn = this.functions.get(signature);
+    public Function resolve(String name, int numParams) {
+        Function fn = getFunction(this.functions, name, numParams);
         if (fn == null)
-            throw new NullPointerException("No function with signature: " + signature);
+            throw new NullPointerException("No function named " + name + " that accepts " + numParams + " arguments.");
         return fn;
     }
 
-    public Function resolve(String name, Expression<?>... params) {
-        Class<?>[] paramTypes = new Class[params.length];
-        for (int i = 0; i < params.length; i++)
-            paramTypes[i] = params[i].getType();
-
-        return resolve(name, paramTypes);
+    public CalcObject call(String name, CalcObject... args) {
+        return resolve(name, args.length).call(args);
     }
 
-    public void forEachDefault(BiConsumer<FunctionSignature, Function> apply) {
-        this.functions.forEach(apply);
+    public void forEachDefault(Consumer<Function> apply) {
+        this.functions.forEach((name, map) -> map.values().forEach(apply));
     }
 
-    public void forEachDefined(BiConsumer<FunctionSignature, UserDefinedFunction> apply) {
-        this.customFunctions.forEach(apply);
+    public void forEachDefined(Consumer<UserDefinedFunction> apply) {
+        this.customFunctions.forEach((name, map) -> map.values().forEach(apply));
     }
 }

@@ -1,15 +1,14 @@
 package io.github.spencerpark.calccli.function;
 
-import io.github.spencerpark.calccli.expression.Environment;
-import io.github.spencerpark.calccli.expression.Expression;
+import io.github.spencerpark.calccli.expression.objects.CalcObject;
 
-public interface Function<R> {
+public interface Function {
 
-    R call(Environment env, Expression<?>... args);
+    CalcObject call(CalcObject... args);
 
     FunctionSignature getSignature();
 
-    default void checkCall(Expression<?>[] args) {
+    default void checkCall(CalcObject[] args) {
         getSignature().checkCanCallWith(args);
     }
 }
